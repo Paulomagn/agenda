@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Paulo - Gerenciador de Eventos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add:active {
+            transform: translateY(0);
+        }
+
+        .btn-clear {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #d0d0d0;
+        }
+
+        .events-section {
+            margin-top: 30px;
+        }
+
+        .events-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .events-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .event-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .event-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .event-card h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.3em;
+        }
+
+        .event-card p {
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .event-time {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #45a049;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #da190b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            color: #999;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        .btn-save {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #45a049;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .form-section {
+                padding: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .event-actions {
+                flex-direction: column;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chat-id-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #1565c0;
+            font-size: 0.95em;
+        }
+
+        .chat-id-info strong {
+            color: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Agenda Paulo</h1>
+            <p>Gerenciador de Eventos com Alertas no Telegram</p>
+        </div>
+
+        <div class="content">
+            <div class="chat-id-info">
+                <strong>ID do Chat Telegram:</strong> 5159941047
+                <br>
+                <small>Você receberá alertas neste chat quando os eventos se aproximarem.</small>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <div class="form-section">
+                <h2>➕ Novo Evento</h2>
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label for="eventTitle">Título do Evento *</label>
+                        <input type="text" id="eventTitle" placeholder="Ex: Reunião com cliente" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventDescription">Descrição</label>
+                        <textarea id="eventDescription" placeholder="Descreva os detalhes do evento..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventTime">Data e Hora *</label>
+                        <input type="datetime-local" id="eventTime" required>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-add">➕ Adicionar Evento</button>
+                        <button type="reset" class="btn-clear">🔄 Limpar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="events-section">
+                <h2>📋 Seus Eventos</h2>
+                <div id="eventsList" class="events-list">
+                    <div class="empty-state">
+                        <p>Nenhum evento cadastrado ainda. Crie seu primeiro evento acima!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar evento -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>✏️ Editar Evento</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editTitle">Título do Evento *</label>
+                    <input type="text" id="editTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDescription">Descrição</label>
+                    <textarea id="editDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editTime">Data e Hora *</label>
+                    <input type="datetime-local" id="editTime" required>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-save">💾 Salvar Alterações</button>
+                    <button type="button" class="btn-cancel" id="cancelEdit">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configurações do Supabase
+        const SUPABASE_URL = 'https://vggalxjocgvgoxcrhpzh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnZ2FseGpvY2d2Z294Y3JocHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyMTAwNjgsImV4cCI6MjA3Nzc4NjA2OH0.mMX0_Un1Ic5Z717CzHRadLMDyBe28-9b_5NCzm7vfgQ';
+        const TELEGRAM_CHAT_ID = '5159941047';
+
+        let editingEventId = null;
+
+        // Função para mostrar mensagens de status
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            setTimeout(() => {
+                statusDiv.className = 'status-message';
+            }, 4000);
+        }
+
+        // Função para fazer requisições ao Supabase
+        async function supabaseRequest(method, table, data = null, id = null) {
+            try {
+                let url = `${SUPABASE_URL}/rest/v1/${table}`;
+                if (id) {
+                    url += `?id=eq.${id}`;
+                }
+
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                };
+
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(url, options);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erro na requisição');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Erro:', error);
+                throw error;
+            }
+        }
+
+        // Função para carregar eventos
+        async function loadEvents() {
+            try {
+                const events = await supabaseRequest('GET', 'events');
+                displayEvents(events);
+            } catch (error) {
+                showStatus('Erro ao carregar eventos. Verifique a conexão com o Supabase.', 'error');
+                console.error('Erro ao carregar eventos:', error);
+            }
+        }
+
+        // Função para exibir eventos
+        function displayEvents(events) {
+            const eventsList = document.getElementById('eventsList');
+
+            if (!events || events.length === 0) {
+                eventsList.innerHTML = '<div class="empty-state"><p>Nenhum evento cadastrado ainda. Crie seu primeiro evento acima!</p></div>';
+                return;
+            }
+
+            eventsList.innerHTML = events.map(event => {
+                const eventDate = new Date(event.event_time);
+                const formattedDate = eventDate.toLocaleString('pt-BR');
+
+                return `
+                    <div class="event-card">
+                        <h3>${escapeHtml(event.title)}</h3>
+                        <p>${escapeHtml(event.description || 'Sem descrição')}</p>
+                        <div class="event-time">📅 ${formattedDate}</div>
+                        <div class="event-actions">
+                            <button class="btn-edit" onclick="openEditModal('${event.id}', '${escapeHtml(event.title)}', '${escapeHtml(event.description || '')}', '${event.event_time}')">✏️ Editar</button>
+                            <button class="btn-delete" onclick="deleteEvent('${event.id}')">🗑️ Deletar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Função para escapar HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Função para adicionar evento
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+            const eventTime = document.getElementById('eventTime').value;
+
+            if (!title || !eventTime) {
+                showStatus('Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            try {
+                const newEvent = {
+                    title: title,
+                    description: description,
+                    event_time: new Date(eventTime).toISOString(),
+                    telegram_chat_id: TELEGRAM_CHAT_ID,
+                    alert_sent: false
+                };
+
+                await supabaseRequest('POST', 'events', newEvent);
+                showStatus('✅ Evento adicionado com sucesso!', 'success');
+                document.getElementById('eventForm').reset();
+                loadEvents();
+            } catch (error) {
+                showStatus('❌ Erro ao adicionar evento. Tente novamente.', 'error');
+                console.error('Erro:', error);
+            }
+        });
+
+        // Função para abrir modal de edição
+        function openEditModal(id, title, description, eventTime) {
+            editingEventId = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editTime').value = eventTime.slice(0, 16);
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Função para fechar modal
+        document.querySelector('.close-modal').addEventListener('click', () => {
+            document.getElementById('editModal').style.display = 'none';
+            editingEventId = null;
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            document.getElementById('editModal').style.display = 'none';
+            editingEventId = null;
+        });
+
+        // Função para salvar edição
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('editTitle').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const eventTime = document.getElementById('editTime').value;
+
+            if (!title || !eventTime) {
+                showStatus('Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            try {
+                const updatedEvent = {
+                    title: title,
+                    description: description,
+                    event_time: new Date(eventTime).toISOString()
+                };
+
+                await supabaseRequest('PATCH', `events?id=eq.${editingEventId}`, updatedEvent);
+                showStatus('✅ Evento atualizado com sucesso!', 'success');
+                document.getElementById('editModal').style.display = 'none';
+                editingEventId = null;
+                loadEvents();
+            } catch (error) {
+                showStatus('❌ Erro ao atualizar evento. Tente novamente.', 'error');
+                console.error('Erro:', error);
+            }
+        });
+
+        // Função para deletar evento
+        async function deleteEvent(id) {
+            if (!confirm('Tem certeza que deseja deletar este evento?')) {
+                return;
+            }
+
+            try {
+                await supabaseRequest('DELETE', `events?id=eq.${id}`);
+                showStatus('✅ Evento deletado com sucesso!', 'success');
+                loadEvents();
+            } catch (error) {
+                showStatus('❌ Erro ao deletar evento. Tente novamente.', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Carregar eventos ao iniciar
+        loadEvents();
+    </script>
+</body>
+</html>
