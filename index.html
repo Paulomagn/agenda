@@ -425,7 +425,6 @@
         </div>
     </div>
 
-    <!-- Modal para editar evento -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
@@ -472,7 +471,10 @@
             }, 4000);
         }
 
-        // Função para fazer requisições ao Supabase
+        // ----------------------------------------------------
+        // INÍCIO DA CORREÇÃO
+        // ----------------------------------------------------
+        // Função para fazer requisições ao Supabase (COM CORREÇÃO)
         async function supabaseRequest(method, table, data = null, id = null) {
             try {
                 let url = `${SUPABASE_URL}/rest/v1/${table}`;
@@ -496,16 +498,35 @@
                 const response = await fetch(url, options);
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Erro na requisição');
+                    // Tenta ler o erro como JSON (padrão do Supabase)
+                    let errorMsg = response.statusText;
+                    try {
+                        const error = await response.json();
+                        errorMsg = error.message || 'Erro na requisição';
+                    } catch (e) {
+                        // O corpo do erro não era JSON (ex: 502, 404 genérico)
+                        // 'errorMsg' já contém o response.statusText
+                    }
+                    throw new Error(errorMsg);
                 }
 
+                // CORREÇÃO: Checa se a resposta está vazia (Status 204)
+                // Isso acontece em requisições DELETE (ou PATCH sem 'Prefer')
+                if (response.status === 204) {
+                    return null; // Retorna sucesso, mas sem JSON
+                }
+
+                // Se não for 204, a resposta tem um corpo JSON (GET, POST)
                 return await response.json();
+                
             } catch (error) {
                 console.error('Erro:', error);
                 throw error;
             }
         }
+        // ----------------------------------------------------
+        // FIM DA CORREÇÃO
+        // ----------------------------------------------------
 
         // Função para carregar eventos
         async function loadEvents() {
@@ -526,6 +547,10 @@
                 eventsList.innerHTML = '<div class="empty-state"><p>Nenhum evento cadastrado ainda. Crie seu primeiro evento acima!</p></div>';
                 return;
             }
+            
+            // Ordena os eventos por data (mais recente primeiro)
+            // Você pode mudar para 'a - b' para o mais antigo primeiro
+            events.sort((a, b) => new Date(b.event_time) - new Date(a.event_time));
 
             eventsList.innerHTML = events.map(event => {
                 const eventDate = new Date(event.event_time);
@@ -594,7 +619,13 @@
             editingEventId = id;
             document.getElementById('editTitle').value = title;
             document.getElementById('editDescription').value = description;
-            document.getElementById('editTime').value = eventTime.slice(0, 16);
+            
+            // Formata a data para o input datetime-local (YYYY-MM-DDTHH:MM)
+            const localEventTime = new Date(eventTime);
+            // Ajusta para o fuso horário local antes de fatiar
+            localEventTime.setMinutes(localEventTime.getMinutes() - localEventTime.getTimezoneOffset());
+            document.getElementById('editTime').value = localEventTime.toISOString().slice(0, 16);
+            
             document.getElementById('editModal').style.display = 'block';
         }
 
